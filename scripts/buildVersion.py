@@ -61,11 +61,14 @@ if r:
 	cverMicro=int(r.group(4))
 	nupVersion=int(r.group(5))
 	nupRegion=r.group(6)
-	loadropbin=""
-	if(len(sys.argv)>=3 and sys.argv[2]=="--enableloadropbin"):
-		loadropbin=" LOADROPBIN=1"
+	extraparams=""
+	for arg in sys.argv:
+		if(arg=="--enableloadropbin"):
+			extraparams+=" LOADROPBIN=1"
+		if(arg=="--enableotherapp"):
+			extraparams+=" OTHERAPP=1"
 	v=(cverMajor, cverMinor, cverMicro, nupVersion, nupRegion, new3DS)
 	os.system("make clean")	
-	os.system("make CNVERSION="+getCnVersion(v)+" ROVERSION="+getRoVersion(v)+" SPIDERVERSION="+getSpiderVersion(v)+" FIRMVERSION="+getFirmVersion(v)+" MENUVERSION="+getMenuVersion(v)+loadropbin)
+	os.system("make CNVERSION="+getCnVersion(v)+" ROVERSION="+getRoVersion(v)+" SPIDERVERSION="+getSpiderVersion(v)+" FIRMVERSION="+getFirmVersion(v)+" MENUVERSION="+getMenuVersion(v)+extraparams)
 else:
 	print("invalid version format; learn2read.")
