@@ -15,10 +15,20 @@ def getRoVersion(v):
 		return "4096"
 
 def getMenuVersion(v):
-	if v[0]==9 and v[1]==7:
-		return "17415"
-	else:
-		return "12288"
+	if v[0]==9:
+		if (v[1]==0 or v[1]==1):
+			return "11272"
+		elif v[1]==2:
+			return "12288"
+		elif (v[1]==3 or v[1]==4):
+			return "13330"
+		elif v[1]==5:
+			return "15360"
+		elif v[1]==6:
+			return "16404"
+		elif v[1]==7:
+			return "17415"
+	return "unsupported"
 
 def getSpiderVersion(v):
 	if v[5]==1:
