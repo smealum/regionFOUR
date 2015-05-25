@@ -29,12 +29,34 @@ function getFirmVersion($v)
 
 function getMenuVersion($v)
 {
-	if($v[0]==9 && $v[1]==7)
+	if($v[0]==9)
 	{
-		return "17415";
-	}else{
-		return "12288";
+		if ($v[1]==0 || $v[1]==1)
+		{
+			return "11272";
+		}
+		else if($v[1]==2)
+		{
+			return "12288";
+		}
+		else if($v[1]==3 || $v[1]==4)
+		{
+			return "13330";
+		}
+		else if($v[1]==5)
+		{
+			return "15360";
+		}
+		else if($v[1]==6)
+		{
+			return "16404";
+		}
+		else if($v[1]==7)
+		{
+			return "17415";
+		}
 	}
+	return "unsupported";
 }
 
 $version = array(
