@@ -1,9 +1,9 @@
 regionFOUR
 =======
 
-regionFOUR is a region free loader for New3DS/New3DSXL/3DS/3DSXL/2DS which currently works on on firmware versions 9.2 and 9.7 this also allows you to bypass mandatory gamecard firmware updates.
+regionFOUR is a region free loader for New3DS/New3DSXL/3DS/3DSXL/2DS which currently works on on firmware versions 9.0 through 9.7 (including 9.1, 9.2, 9.3, 9.4, 9.5 and 9.6). It also allows you to bypass mandatory gamecard firmware updates.
 
-it is a successor to regionthree made to rely on an exploit game (currently cubic ninja, see below regarding other apps) rather than the web browser. as such it only requires an internet connection the first time it is run, and can then be run offline.
+It is a successor to regionthree made to rely on an exploit game (currently cubic ninja, see below regarding other apps) rather than the web browser. as such it only requires an internet connection the first time it is run, and can then be run offline.
 
 ### How to use
 
