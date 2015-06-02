@@ -47,6 +47,7 @@ for entry in l:
 	if len(entry) == 3:
 		# gadget search
 		(name, in_addr, in_size) = entry
+		print(name)
 		out_addr = findPattern(proto, target, in_addr - base, in_size) + base
 		out += [(name, hex(out_addr))]
 	if len(entry) == 4:

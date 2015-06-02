@@ -55,6 +55,10 @@ function getMenuVersion($v)
 		{
 			return "17415";
 		}
+		else if($v[1]==8)
+		{
+			return "19456";
+		}
 	}
 	return "unsupported";
 }

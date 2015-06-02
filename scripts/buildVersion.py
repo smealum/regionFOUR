@@ -28,6 +28,8 @@ def getMenuVersion(v):
 			return "16404"
 		elif v[1]==7:
 			return "17415"
+		elif v[1]==8:
+			return "19456"
 	return "unsupported"
 
 def getSpiderVersion(v):
