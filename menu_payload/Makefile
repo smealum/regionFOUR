@@ -31,7 +31,7 @@ clean:
 	@echo "all cleaned up !"
 
 menu_ropbin.bin:
-	cp menu_ropbin$(ROPBIN_FILENAME_SUFFIX) menu_ropbin.bin
+	cp menu_ropbin_$(MENUVERSION)$(ROPBIN_FILENAME_SUFFIX) menu_ropbin.bin
 
 %.bin: %.s
 	@armips $<
