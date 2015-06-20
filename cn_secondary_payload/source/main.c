@@ -10,7 +10,10 @@
 #include "text.h"
 #include "menu_payload_regionfree_bin.h"
 #include "menu_payload_loadropbin_bin.h"
+
+#ifndef OTHERAPP
 #include "cn_save_initial_loader_bin.h"
+#endif
 
 #ifdef LOADROPBIN
 #include "menu_ropbin_bin.h"
@@ -228,6 +231,7 @@ void doGspwn(u32* src, u32* dst, u32 size)
 	#endif
 }
 
+#ifndef OTHERAPP
 //no idea what this does; apparently used to switch up save partitions
 Result FSUSER_ControlArchive(Handle handle, FS_archive archive)
 {
@@ -253,6 +257,7 @@ Result FSUSER_ControlArchive(Handle handle, FS_archive archive)
  
 	return cmdbuf[1];
 }
+#endif
 
 void clearScreen(u8 shade)
 {
@@ -284,6 +289,7 @@ void drawTitleScreen(char* str)
 	renderString(str, 0, 40);
 }
 
+#ifndef OTHERAPP
 void installerScreen(u32 size)
 {
 	char str[512] =
@@ -357,6 +363,7 @@ void installerScreen(u32 size)
 		}else if(PAD&PAD_B)break;
 	}
 }
+#endif
 
 Result _APT_AppletUtility(Handle* handle, u32* out, u32 a, u32 size1, u8* buf1, u32 size2, u8* buf2)
 {

@@ -66,6 +66,7 @@ $(PROJECTNAME).elf: $(OFILES) ctrulib
 clean:
 	@rm -f build/*.o build/*.d
 	@rm -f $(PROJECTNAME).elf $(PROJECTNAME).bin
+	@rm -f data/*
 	@echo "all cleaned up !"
 
 -include $(DFILES)
