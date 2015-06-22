@@ -73,11 +73,11 @@ clean:
 
 build/%.o: source/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
-	@$(CC) -MM $< > build/$*.d
+	@$(CC) $(DEFINES) -MM $< > build/$*.d
 
 build/%.o: source/%.s
 	$(CC) $(CFLAGS) -c $< -o $@
-	@$(CC) -MM $< > build/$*.d
+	@$(CC) $(DEFINES) -MM $< > build/$*.d
 
 build/%.bin.o: data/%.bin
 	@echo $(notdir $<)
