@@ -58,6 +58,7 @@ menu_ropdb:
 	@mkdir -p menu_ropdb/16404
 	@mkdir -p menu_ropdb/17415
 	@mkdir -p menu_ropdb/19456
+	@mkdir -p menu_ropdb/20480_usa
 	@echo building ropDB for menu version 11272...
 	@python scripts/portRopDb.py menu_17415_code.bin menu_11272_code.bin 0x00100000 menu_ropdb/17415_proto/ropdb.txt menu_ropdb/11272/ropdb.txt
 	@echo building ropDB for menu version 12288...
@@ -72,6 +73,8 @@ menu_ropdb:
 	@python scripts/portRopDb.py menu_17415_code.bin menu_17415_code.bin 0x00100000 menu_ropdb/17415_proto/ropdb.txt menu_ropdb/17415/ropdb.txt
 	@echo building ropDB for menu version 19456...
 	@python scripts/portRopDb.py menu_17415_code.bin menu_19456_code.bin 0x00100000 menu_ropdb/17415_proto/ropdb.txt menu_ropdb/19456/ropdb.txt
+	@echo building ropDB for menu version 20480_usa...
+	@python scripts/portRopDb.py menu_17415_code.bin menu_20480_usa_code.bin 0x00100000 menu_ropdb/17415_proto/ropdb.txt menu_ropdb/20480_usa/ropdb.txt
 
 q/$(OUTNAME).png: build/cn_qr_initial_loader.bin.png
 	@cp build/cn_qr_initial_loader.bin.png q/$(OUTNAME).png

@@ -14,7 +14,7 @@ firmVersions=["POST5", "N3DS"]
 cnVersions=["WEST", "JPN"]
 spiderVersions=[4096]
 roVersions=[4096]
-menuVersions=[11272, 12288, 13330, 15360, 16404, 17415]
+menuVersions=[11272, 12288, 13330, 15360, 16404, 17415, 19456, "20480_usa"]
 
 a=[firmVersions, cnVersions, spiderVersions, roVersions, menuVersions]
 
