@@ -31,6 +31,8 @@ export MENUVERSION
 export LOADROPBIN
 export OTHERAPP
 
+PAYLOAD_SRCPATH	:=	build/cn_secondary_payload.bin
+
 ROPBIN_CMD0	:=	
 ROPBIN_CMD1	:=	
 ifneq ($(strip $(LOADROPBIN)),)
@@ -40,11 +42,22 @@ endif
 
 OUTNAME = $(FIRMVERSION)_$(CNVERSION)_$(MENUVERSION)
 
+QRCODE_TARGET0	:=	q/$(OUTNAME).png
+QRCODE_TARGET1	:=	build/cn_save_initial_loader.bin
+QRCODE_TARGET1_CMD	:=	@cp $(QRCODE_TARGET1) cn_secondary_payload/data/
+
+ifneq ($(strip $(OTHERAPP)),)
+	PAYLOAD_SRCPATH	:=	cn_secondary_payload/cn_secondary_payload.bin
+	QRCODE_TARGET0	:=	
+	QRCODE_TARGET1	:=	
+	QRCODE_TARGET1_CMD	:=	
+endif
+
 SCRIPTS = "scripts"
 
 .PHONY: directories all menu_ropdb build/constants firm_constants/constants.txt cn_constants/constants.txt menu_ropdb/ropdb.txt cn_qr_initial_loader/cn_qr_initial_loader.bin.png cn_save_initial_loader/cn_save_initial_loader.bin cn_secondary_payload/cn_secondary_payload.bin cn_bootloader/cn_bootloader.bin menu_payload/menu_payload_regionfree.bin menu_payload/menu_payload_loadropbin.bin menu_payload/menu_ropbin.bin
 
-all: directories build/constants q/$(OUTNAME).png p/$(OUTNAME).bin build/cn_save_initial_loader.bin
+all: directories build/constants $(QRCODE_TARGET0) p/$(OUTNAME).bin $(QRCODE_TARGET1)
 directories:
 	@mkdir -p build && mkdir -p build/cro
 	@mkdir -p p
@@ -79,8 +92,8 @@ menu_ropdb:
 q/$(OUTNAME).png: build/cn_qr_initial_loader.bin.png
 	@cp build/cn_qr_initial_loader.bin.png q/$(OUTNAME).png
 
-p/$(OUTNAME).bin: build/cn_secondary_payload.bin
-	@cp build/cn_secondary_payload.bin p/$(OUTNAME).bin
+p/$(OUTNAME).bin: $(PAYLOAD_SRCPATH)
+	@cp $(PAYLOAD_SRCPATH) p/$(OUTNAME).bin
 
 firm_constants/constants.txt:
 	@cd firm_constants && make
@@ -106,9 +119,9 @@ cn_save_initial_loader/cn_save_initial_loader.bin:
 
 build/cn_secondary_payload.bin: cn_secondary_payload/cn_secondary_payload.bin
 	@python $(SCRIPTS)/blowfish.py cn_secondary_payload/cn_secondary_payload.bin build/cn_secondary_payload.bin scripts
-cn_secondary_payload/cn_secondary_payload.bin: build/cn_save_initial_loader.bin build/menu_payload_regionfree.bin build/menu_payload_loadropbin.bin build/menu_ropbin.bin
+cn_secondary_payload/cn_secondary_payload.bin: $(QRCODE_TARGET1) build/menu_payload_regionfree.bin build/menu_payload_loadropbin.bin build/menu_ropbin.bin
 	@mkdir -p cn_secondary_payload/data
-	@cp build/cn_save_initial_loader.bin cn_secondary_payload/data/
+	$(QRCODE_TARGET1_CMD)
 	@cp build/menu_payload_regionfree.bin cn_secondary_payload/data/
 	@cp build/menu_payload_loadropbin.bin cn_secondary_payload/data/
 	$(ROPBIN_CMD0)
