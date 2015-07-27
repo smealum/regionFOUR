@@ -121,10 +121,10 @@ u8 *GSP_GetTopFBADR()
 	u32 ptr;
 
 	#ifndef OTHERAPP
-	Handle* gspHandle=(Handle*)CN_GSPHANDLE_ADR;
+		Handle* gspHandle=(Handle*)CN_GSPHANDLE_ADR;
 	#else
-	u32 *paramblk = (u32*)*((u32*)0xFFFFFFC);
-	Handle* gspHandle=(Handle*)paramblk[0x58>>2];
+		u32 *paramblk = (u32*)*((u32*)0xFFFFFFC);
+		Handle* gspHandle=(Handle*)paramblk[0x58>>2];
 	#endif
 
 	if(_GSPGPU_ImportDisplayCaptureInfo(gspHandle, &capinfo)!=0)return NULL;
@@ -138,14 +138,14 @@ u8 *GSP_GetTopFBADR()
 Result GSP_FlushDCache(u32* addr, u32 size)
 {
 	#ifndef OTHERAPP
-	Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u32* addr, u32 size)=(void*)CN_GSPGPU_FlushDataCache_ADR;
-	Handle* gspHandle=(Handle*)CN_GSPHANDLE_ADR;
-	return _GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, addr, size);
+		Result (*_GSPGPU_FlushDataCache)(Handle* handle, Handle kprocess, u32* addr, u32 size)=(void*)CN_GSPGPU_FlushDataCache_ADR;
+		Handle* gspHandle=(Handle*)CN_GSPHANDLE_ADR;
+		return _GSPGPU_FlushDataCache(gspHandle, 0xFFFF8001, addr, size);
 	#else
-	Result (*_GSP_FlushDCache)(u32* addr, u32 size);
-	u32 *paramblk = (u32*)*((u32*)0xFFFFFFC);
-	_GSP_FlushDCache=(void*)paramblk[0x20>>2];
-	return _GSP_FlushDCache(addr, size);
+		Result (*_GSP_FlushDCache)(u32* addr, u32 size);
+		u32 *paramblk = (u32*)*((u32*)0xFFFFFFC);
+		_GSP_FlushDCache=(void*)paramblk[0x20>>2];
+		return _GSP_FlushDCache(addr, size);
 	#endif
 }
 
@@ -197,9 +197,16 @@ Result _GSPGPU_ReleaseRight(Handle handle)
 	return cmdbuf[1];
 }
 
+const char* const aptServiceNames[] = {"APT:U", "APT:A", "APT:S"};
+
+#define _aptSessionInit() \
+	int aptIndex; \
+	for(aptIndex = 0; aptIndex < 3; aptIndex++)	if(!_srv_getServiceHandle(srvHandle, &aptuHandle, (char*)aptServiceNames[aptIndex]))break;\
+	svc_closeHandle(aptuHandle);\
+
 #define _aptOpenSession() \
 	svc_waitSynchronization1(aptLockHandle, U64_MAX);\
-	_srv_getServiceHandle(srvHandle, &aptuHandle, "APT:U");\
+	_srv_getServiceHandle(srvHandle, &aptuHandle, (char*)aptServiceNames[aptIndex]);\
 
 #define _aptCloseSession()\
 	svc_closeHandle(aptuHandle);\
@@ -437,6 +444,8 @@ void _aptExit()
 
 	_initSrv(srvHandle);
 
+	_aptSessionInit();
+
 	#ifndef OTHERAPP
 	aptLockHandle=*((Handle*)CN_APTLOCKHANDLE_ADR);
 	#else
@@ -475,16 +484,16 @@ void _aptExit()
 	_aptCloseSession();
 }
 
-void inject_payload(u32 target_address)
+void inject_payload(u32* linear_buffer, u32 target_address)
 {
 	u32 target_base = target_address & ~0xFF;
 	u32 target_offset = target_address - target_base;
 
 	//read menu memory
 	{
-		GSP_FlushDCache((u32*)0x14100000, 0x00001000);
+		GSP_FlushDCache(linear_buffer, 0x00001000);
 		
-		doGspwn((u32*)(target_base), (u32*)0x14100000, 0x00001000);
+		doGspwn((u32*)(target_base), linear_buffer, 0x00001000);
 	}
 
 	svc_sleepThread(10000000); //sleep long enough for memory to be read
@@ -502,7 +511,7 @@ void inject_payload(u32 target_address)
 		payload_size = menu_payload_loadropbin_bin_size;
 		#endif
 
-		u32* payload_dst = &((u32*)0x14100000)[target_offset/4];
+		u32* payload_dst = &linear_buffer[target_offset/4];
 
 		//patch in payload
 		int i;
@@ -514,9 +523,9 @@ void inject_payload(u32 target_address)
 			}else if(payload_src[i] != 0xDEADCAFE) payload_dst[i] = payload_src[i];
 		}
 
-		GSP_FlushDCache((u32*)0x14100000, 0x00001000);
+		GSP_FlushDCache(linear_buffer, 0x00001000);
 
-		doGspwn((u32*)0x14100000, (u32*)(target_base), 0x00001000);
+		doGspwn(linear_buffer, (u32*)(target_base), 0x00001000);
 	}
 
 	svc_sleepThread(10000000); //sleep long enough for memory to be written
@@ -532,8 +541,10 @@ int main(u32 loaderparam, char** argv)
 
 	#ifndef OTHERAPP
 	Handle* gspHandle=(Handle*)CN_GSPHANDLE_ADR;
+	u32* linear_buffer = 0x14100000;
 	#else
 	Handle* gspHandle=(Handle*)paramblk[0x58>>2];
+	u32* linear_buffer = (u32*)((((u32)paramblk) + 0x1000) & ~0xfff);
 	#endif
 
 	u8 recvbuf[0x1000];
@@ -548,16 +559,16 @@ int main(u32 loaderparam, char** argv)
 	//search for target object in home menu's linear heap
 	const u32 start_addr = FIRM_LINEARSYSTEM;
 	const u32 end_addr = FIRM_LINEARSYSTEM + 0x01000000;
-	const block_size = 0x00010000;
-	const block_stride = block_size-0x100; // keep some overlap to make sure we don't miss anything
+	const u32 block_size = 0x00010000;
+	const u32 block_stride = block_size-0x100; // keep some overlap to make sure we don't miss anything
 
 	#ifdef LOADROPBIN
 	u32 binsize = (menu_ropbin_bin_size + 7) & ~7;//Align to 8-bytes.
 
-	memcpy((u32*)0x14100000, (u32*)menu_ropbin_bin, menu_ropbin_bin_size);//Copy menu_ropbin_bin into homemenu linearmem.
-	GSP_FlushDCache((u32*)0x14100000, binsize);
-	doGspwn((u32*)0x14100000, (u32*)MENU_LOADEDROP_BUFADR, binsize);
-	svc_sleepThread(100000000);
+	memcpy(linear_buffer, (u32*)menu_ropbin_bin, menu_ropbin_bin_size);//Copy menu_ropbin_bin into homemenu linearmem.
+	GSP_FlushDCache(linear_buffer, binsize);
+	doGspwn(linear_buffer, (u32*)MENU_LOADEDROP_BUFADR, binsize);
+	svc_sleepThread(100*1000*1000);
 	#endif
 
 	int cnt = 0;
@@ -567,18 +578,18 @@ int main(u32 loaderparam, char** argv)
 	{
 		//read menu memory
 		{
-			GSP_FlushDCache((u32*)0x14100000, block_size);
+			GSP_FlushDCache(linear_buffer, block_size);
 			
-			doGspwn((u32*)(block_start), (u32*)0x14100000, block_size);
+			doGspwn((u32*)(block_start), linear_buffer, block_size);
 		}
 
-		svc_sleepThread(1000000); //sleep long enough for memory to be read
+		svc_sleepThread(1000*1000); //sleep long enough for memory to be read
 
 		int i;
 		u32 end = block_size/4-0x10;
 		for(i=0; i<end; i++)
 		{
-			const u32* adr = &((u32*)0x14100000)[i];
+			const u32* adr = &(linear_buffer)[i];
 			if(adr[2]==0x5544 && adr[3]==0x80 && adr[6]!=0x0 && adr[0x1F]==0x6E4C5F4E)break;
 		}
 		if(i<end)
@@ -588,10 +599,10 @@ int main(u32 loaderparam, char** argv)
 			target_address = block_start + i * 4;
 
 			drawHex(target_address, 8, 50+cnt*10);
-			drawHex(((u32*)0x14100000)[i+6], 100, 50+cnt*10);
-			drawHex(((u32*)0x14100000)[i+0x1f], 200, 50+cnt*10);
+			drawHex((linear_buffer)[i+6], 100, 50+cnt*10);
+			drawHex((linear_buffer)[i+0x1f], 200, 50+cnt*10);
 
-			inject_payload(target_address+0x18);
+			inject_payload(linear_buffer, target_address+0x18);
 
 			block_start = target_address + 0x10 - block_stride;
 			cnt++;
@@ -599,7 +610,7 @@ int main(u32 loaderparam, char** argv)
 		}
 	}
 
-	svc_sleepThread(100000000); //sleep long enough for memory to be written
+	svc_sleepThread(100*1000*1000); //sleep long enough for memory to be written
 
 	#ifndef LOADROPBIN
 	drawTitleScreen("\n   regionFOUR is ready.\n   insert your gamecard and press START.");
@@ -613,6 +624,6 @@ int main(u32 loaderparam, char** argv)
 	_aptExit();
 	svc_exitProcess();
 
-	while(1);
+	while(1)svc_sleepThread(100*1000*1000);
 	return 0;
 }
